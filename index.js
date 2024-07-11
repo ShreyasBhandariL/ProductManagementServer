@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const multer = require("multer");
 const connectDb = require("./config/db");
 const User = require("./config/login");
 const Product = require("./models/Product");
@@ -9,11 +10,22 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: "https://productservice.netlify.app",
+    origin: ["https://productservice.netlify.app", "http://localhost:3000"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 app.post("/register", async (req, res) => {
   try {
@@ -43,8 +55,17 @@ app.post("/login", async (req, res) => {
   }
 });
 
-app.post("/add-product", async (req, res) => {
-  const product = new Product(req.body);
+app.post("/add-product", upload.single("image"), async (req, res) => {
+  const { name, price, category, userId, company } = req.body;
+  const image = req.file ? req.file.path : null;
+  const product = new Product({
+    name,
+    price,
+    category,
+    userId,
+    company,
+    image,
+  });
   const result = await product.save();
   res.send(result);
 });
@@ -79,6 +100,10 @@ app.put("/products/:id", async (req, res) => {
   );
   res.send(result);
 });
+
+app.post("/add-buyer",require('./Component/buyer'));
+
+app.use("/uploads", express.static("uploads"));
 
 app.listen("8000", () => {
   console.log("Server is Running");
