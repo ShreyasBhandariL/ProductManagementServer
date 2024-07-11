@@ -4,6 +4,7 @@ const multer = require("multer");
 const connectDb = require("./config/db");
 const User = require("./config/login");
 const Product = require("./models/Product");
+const Buyer = require("./models/Buyer");
 connectDb();
 const app = express();
 
@@ -82,6 +83,15 @@ app.get("/products", async (req, res) => {
     res.send({ error: "No Data Found" });
   }
 });
+
+app.get("/customers", async (req, res) => {
+  const customers = await Buyer.find();
+  if (customers.length > 0) {
+    res.send(customers);
+  } else {
+    res.send({ error: "No Data Found" });
+  }
+})
 
 app.delete("/products/:id", async (req, res) => {
   let result = await Product.deleteOne({ _id: req.params.id });
