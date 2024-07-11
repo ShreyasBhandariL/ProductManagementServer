@@ -57,18 +57,17 @@ app.post("/login", async (req, res) => {
 
 app.post("/add-product", upload.single("image"), async (req, res) => {
   try {
-    const { name, price, category, userId, company } = req.body;
+    const { name, price, category, userId } = req.body;
     const image = req.file ? req.file.path : null;
     const product = new Product({
       name,
       price,
       category,
       userId,
-      company,
       image,
     });
     const result = await product.save();
-    res.status(201).json(result); 
+    res.status(200).json(result); 
   } catch (error) {
     console.error("Error adding product:", error);
     res.status(500).json({ error: "Failed to add product" });
