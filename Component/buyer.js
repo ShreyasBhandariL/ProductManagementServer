@@ -20,10 +20,9 @@ const AddBuyer =  async (req, res) => {
       buyerContact,
     });
 
-    const savedBuyer = await newBuyer.save();
-    res.status(201).json(savedBuyer);
+    await newBuyer.save();
+    res.status(200).json({ result: "Buyed the product" });
   } catch (error) {
-    console.error("Error saving buyer information:", error);
     res.status(500).json({ error: "Failed to save buyer information" });
   }
 };
