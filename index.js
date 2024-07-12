@@ -94,9 +94,28 @@ app.get("/customers", async (req, res) => {
 })
 
 app.delete("/products/:id", async (req, res) => {
-  let result = await Product.deleteOne({ _id: req.params.id });
-  res.send(result);
+  try {
+    const productId = req.params.id;
+
+    const deleteProduct = await Product.deleteOne({ _id: productId });
+
+    const deleteBuyers = await Buyer.deleteMany({ productId: productId });
+
+    if (deleteProduct.deletedCount > 0 || deleteBuyers.deletedCount > 0) {
+      res.json({
+        message: "Product and associated buyers deleted successfully",
+      });
+    } else {
+      res.status(404).json({ error: "Product or associated buyers not found" });
+    }
+  } catch (error) {
+    console.error("Error deleting product:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to delete product and associated buyers" });
+  }
 });
+
 
 app.get("/products/:id", async (req, res) => {
   let result = await Product.findOne({ _id: req.params.id });
