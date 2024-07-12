@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const multer = require("multer");
 const connectDb = require("./config/db");
-const User = require("./config/login");
+const User = require("./models/login");
 const Product = require("./models/Product");
 const Buyer = require("./models/Buyer");
 connectDb();
@@ -44,7 +44,7 @@ app.post("/register", async (req, res) => {
 });
 
 app.post("/login", async (req, res) => {
-  if (req.body.password && req.body.email) {
+  if (req.body.password && req.body.email && req.body.role) {
     let user = await User.findOne(req.body).select("-password");
     if (user) {
       res.send(user);
