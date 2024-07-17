@@ -85,8 +85,9 @@ app.get("/products", async (req, res) => {
   }
 });
 
-app.get("/customers", async (req, res) => {
-  const customers = await Buyer.find();
+app.post("/customers", async (req, res) => {
+  const product = await Product.find({ userId: id });
+  const customers = await Buyer.find({productId: product._id});
   if (customers.length > 0) {
     res.send(customers);
   } else {
