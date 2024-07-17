@@ -86,14 +86,22 @@ app.get("/products", async (req, res) => {
 });
 
 app.post("/customers", async (req, res) => {
-  const product = await Product.find({ userId: id });
-  const customers = await Buyer.find({productId: product._id});
-  if (customers.length > 0) {
-    res.send(customers);
-  } else {
-    res.send({ error: "No Data Found" });
+  const { authId } = req.body;
+  console.log(authId);
+  try {
+    const products = await Product.find({ userId: authId });
+    const productIds = products.map((product) => product._id);
+    const customers = await Buyer.find({ productId: { $in: productIds } });
+    if (customers.length > 0) {
+      res.send(customers);
+    } else {
+      res.send({ error: "No Data Found" });
+    }
+  } catch (error) {
+    console.error("Error fetching customers:", error);
+    res.status(500).json({ error: "Failed to fetch customers" });
   }
-})
+});
 
 app.delete("/products/:id", async (req, res) => {
   try {
