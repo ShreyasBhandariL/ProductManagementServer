@@ -58,12 +58,13 @@ app.post("/login", async (req, res) => {
 
 app.post("/add-product", upload.single("image"), async (req, res) => {
   try {
-    const { name, price, category, userId } = req.body;
+    const { name, price, category,productQuantity, userId } = req.body;
     const image = req.file ? req.file.path : null;
     const product = new Product({
       name,
       price,
       category,
+      productQuantity,
       userId,
       image,
     });

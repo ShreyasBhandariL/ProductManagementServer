@@ -1,6 +1,7 @@
 const Buyer = require("../models/Buyer");
+const Product = require("../models/Product");
 
-const AddBuyer =  async (req, res) => {
+const AddBuyer = async (req, res) => {
   try {
     const {
       productId,
@@ -11,6 +12,24 @@ const AddBuyer =  async (req, res) => {
       buyerName,
       buyerContact,
     } = req.body;
+
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    if (product.productQuantity < quantity) {
+      return res.status(400).json({ error: "Insufficient product quantity" });
+    }
+
+    product.productQuantity -= quantity;
+
+    if (product.productQuantity === 0) {
+      await Product.deleteOne({ _id: productId });
+    } else {
+      await product.save();
+    }
 
     const newBuyer = new Buyer({
       productId,
@@ -23,8 +42,9 @@ const AddBuyer =  async (req, res) => {
     });
 
     await newBuyer.save();
-    res.status(200).json({ result: "Buyed the product" });
+    res.status(200).json({ result: "Product purchased successfully" });
   } catch (error) {
+    console.error("Error purchasing product:", error);
     res.status(500).json({ error: "Failed to save buyer information" });
   }
 };
