@@ -1,39 +1,48 @@
 const { google } = require("googleapis");
-const fs = require("fs");
-const path = require("path");
 const multer = require("multer");
 const stream = require("stream");
+const path = require("path");
 
-const keyFilePath = path.join(__dirname, "./apikey.json");
+// Path to the service account key file
+const SERVICE_ACCOUNT_KEY_FILE = path.join(__dirname, "./apikey.json");
 
-// Load the key file
-const keyFile = require(keyFilePath);
-
-// Configure a JWT auth client
-const auth = new google.auth.JWT({
-  email: keyFile.client_email,
-  key: keyFile.private_key,
+// Initialize Google Drive API
+const auth = new google.auth.GoogleAuth({
+  keyFile: SERVICE_ACCOUNT_KEY_FILE,
   scopes: ["https://www.googleapis.com/auth/drive.file"],
 });
 
-// Initialize the Google Drive API client
-const drive = google.drive({ version: "v3", auth });
+const drive = google.drive({
+  version: "v3",
+  auth,
+});
 
-// Configure Multer to handle file uploads
+// Configure Multer storage in memory
 const storage = multer.memoryStorage();
-const upload = multer({ storage }).single("file");
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB file size limit
+});
 
-// Function to upload file to Google Drive
-const uploadFileToDrive = async (buffer, filename) => {
+/**
+ * Uploads a file to Google Drive
+ * @param {Buffer} fileBuffer - The buffer of the file to be uploaded
+ * @param {String} fileName - The name of the file to be uploaded
+ * @returns {String} - The ID of the uploaded file
+ */
+async function uploadFileToDrive(fileBuffer, fileName) {
   try {
     const fileMetadata = {
-      name: filename,
-      parents: ["your-folder-id"], // replace with your folder ID
+      name: fileName,
+      parents: ["1YQGvAQczAPTcY5fx1PyKj7NJPRKhcNJo"], // Replace with your folder ID
     };
 
+    const fileStream = new stream.PassThrough();
+    fileStream.end(fileBuffer);
+
     const media = {
-      mimeType: "application/octet-stream",
-      body: buffer,
+      mimeType: "application/octet-stream", // Use the correct MIME type if known
+      body: fileStream,
     };
 
     const response = await drive.files.create({
@@ -47,25 +56,9 @@ const uploadFileToDrive = async (buffer, filename) => {
     console.error("Error uploading file to Google Drive:", error);
     throw error;
   }
+}
+
+module.exports = {
+  upload,
+  uploadFileToDrive,
 };
-
-// Express endpoint to handle file uploads
-const express = require("express");
-const app = express();
-
-app.post("/upload", upload, async (req, res) => {
-  try {
-    const fileBuffer = req.file.buffer;
-    const fileName = req.file.originalname;
-
-    const fileId = await uploadFileToDrive(fileBuffer, fileName);
-
-    res.status(200).send({ fileId });
-  } catch (error) {
-    res.status(500).send({ error: "Error uploading file to Google Drive" });
-  }
-});
-
-app.listen(3000, () => {
-  console.log("Server started on port 3000");
-});

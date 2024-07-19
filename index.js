@@ -58,7 +58,7 @@ app.post("/add-product", upload.single("image"), async (req, res) => {
         imageBuffer,
         req.file.originalname
       );
-      imageUrl = `https://drive.google.com/uc?id=${imageId}`;
+      imageUrl = `https://drive.google.com/thumbnail?id=${imageId}`;
     }
     const product = new Product({
       name,
