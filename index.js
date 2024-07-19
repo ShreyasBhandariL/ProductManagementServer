@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const multer = require("multer");
+const { upload, uploadFileToDrive } = require("./imageUpload");
 const connectDb = require("./config/db");
 const User = require("./models/login");
 const Product = require("./models/Product");
@@ -17,16 +17,7 @@ app.use(
   })
 );
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
 
-const upload = multer({ storage: storage });
 
 app.post("/register", async (req, res) => {
   try {
@@ -59,14 +50,23 @@ app.post("/login", async (req, res) => {
 app.post("/add-product", upload.single("image"), async (req, res) => {
   try {
     const { name, price, category,productQuantity, userId } = req.body;
-    const image = req.file ? req.file.path : null;
+    const imageBuffer = req.file ? req.file.buffer : null;
+    let imageUrl = null;
+
+    if (imageBuffer) {
+      const imageId = await uploadFileToDrive(
+        imageBuffer,
+        req.file.originalname
+      );
+      imageUrl = `https://drive.google.com/uc?id=${imageId}`;
+    }
     const product = new Product({
       name,
       price,
       category,
       productQuantity,
       userId,
-      image,
+      image: imageUrl,
     });
     const result = await product.save();
     res.status(200).json(result); 
@@ -87,7 +87,6 @@ app.get("/products", async (req, res) => {
 
 app.post("/customers", async (req, res) => {
   const { authId } = req.body;
-  console.log(authId);
   try {
     const products = await Product.find({ userId: authId });
     const productIds = products.map((product) => product._id);
@@ -146,7 +145,6 @@ app.put("/products/:id", async (req, res) => {
 
 app.post("/add-buyer",require('./Component/buyer'));
 
-app.use("/uploads", express.static("uploads"));
 
 app.listen("8000", () => {
   console.log("Server is Running");
