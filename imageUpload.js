@@ -17,12 +17,12 @@ const drive = google.drive({
   auth,
 });
 
-// Configure Multer storage in memory
+
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB file size limit
-}).single("image"); // Accept only one file with the field name 'image'
+});
 
 /**
  * Uploads a file to Google Drive
