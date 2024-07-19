@@ -1,14 +1,18 @@
 const { google } = require("googleapis");
 const multer = require("multer");
 const stream = require("stream");
+const fs = require("fs");
 const path = require("path");
 
-// Path to the service account key file
-const SERVICE_ACCOUNT_KEY_FILE = path.join(__dirname, "./apikey.json");
+const keyFileContent = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+
+const tempKeyPath = path.join(__dirname, "temp_apikey.json");
+
+fs.writeFileSync(tempKeyPath, keyFileContent);
 
 // Initialize Google Drive API
 const auth = new google.auth.GoogleAuth({
-  keyFile: SERVICE_ACCOUNT_KEY_FILE,
+  keyFile: tempKeyPath,
   scopes: ["https://www.googleapis.com/auth/drive.file"],
 });
 
