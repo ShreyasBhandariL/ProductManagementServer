@@ -3,7 +3,7 @@ const multer = require("multer");
 const stream = require("stream");
 const path = require("path");
 
-// Ensure the correct path to your service account key file
+// Path to the service account key file
 const SERVICE_ACCOUNT_KEY_FILE = path.join(__dirname, "./apikey.json");
 
 // Initialize Google Drive API
@@ -17,12 +17,12 @@ const drive = google.drive({
   auth,
 });
 
-
+// Configure Multer storage in memory
 const storage = multer.memoryStorage();
 const upload = multer({
-  storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB file size limit
-});
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB file size limit
+});// Accept only one file with the field name 'image'
 
 /**
  * Uploads a file to Google Drive
@@ -41,7 +41,7 @@ async function uploadFileToDrive(fileBuffer, fileName) {
     fileStream.end(fileBuffer);
 
     const media = {
-      mimeType: "application/octet-stream", // You can set the correct MIME type if known
+      mimeType: "application/octet-stream", // Use the correct MIME type if known
       body: fileStream,
     };
 
