@@ -26,6 +26,7 @@ const AddBuyer = async (req, res) => {
     product.productQuantity -= quantity;
 
     if (product.productQuantity === 0) {
+      await Buyer.deleteOne({ productId: productId });
       await Product.deleteOne({ _id: productId });
     } else {
       await product.save();
