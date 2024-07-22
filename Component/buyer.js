@@ -30,19 +30,20 @@ const AddBuyer = async (req, res) => {
       await Product.deleteOne({ _id: productId });
     } else {
       await product.save();
+
+      const newBuyer = new Buyer({
+        productId,
+        productName,
+        productPrice,
+        productCategory,
+        quantity,
+        buyerName,
+        buyerContact,
+      });
+
+      await newBuyer.save();
     }
 
-    const newBuyer = new Buyer({
-      productId,
-      productName,
-      productPrice,
-      productCategory,
-      quantity,
-      buyerName,
-      buyerContact,
-    });
-
-    await newBuyer.save();
     res.status(200).json({ result: "Product purchased successfully" });
   } catch (error) {
     console.error("Error purchasing product:", error);
